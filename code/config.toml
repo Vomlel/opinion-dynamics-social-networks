@@ -1,0 +1,153 @@
+
+
+# =========================
+# Konfigurace Experimentu
+# =========================
+
+[experiment]
+name = "PROD_REAL_RUN_1"
+out_dir = "out/prod_real_run_1"
+
+# kolik opakování pro každou kombinaci (model × síť)
+runs = 100
+
+# základní seed; pro každé run/model/síť
+seed_base = 2345
+
+# kolik snapshotů v čase ukládat pro dynamické charakteristiky (0..T)
+# typicky 101 => start + 99 mezistavů + finále
+snapshots = 101
+
+# Co se má počítat / ukládat
+[outputs]
+# ukládat agregované tabulky
+save_aggregated_csv = true
+# ukládat i per-run (raw) tabulky
+save_data_csv = true
+# ukládat i hrany (u ER/BA pro každý run)
+save_edges_csv = false
+# ukládat i snapshoty názorů (může být velké!)
+save_opinion_snapshots = false
+# uloz finalni snapshots
+save_final_opinion_snapshot = true
+# chceme vyplotovat prvni beh iterations/opinions?
+plot_first_run_opinions = true
+
+# grafy pro dynamické charakteristiky (PNG)
+plots = ["clusters", "pad", "polarization"]
+
+
+# =========================
+# Grafy
+# =========================
+
+[networks]
+# které sítě spouštět: "er", "ba", "csv"
+enabled = ["er", "ba", "real"]
+
+[networks.er]
+N = 5910
+p = 0.0024
+
+[networks.ba]
+N = 5910
+M = 7
+
+[networks.csv]
+path = "data/fb-pages-politician"
+# tvoje csv bývá 0-based, proto true
+zero_based = true
+# jestli se má dělat (u<v) + unique!
+undirected = true
+# pokud máš izolované uzly, sem dej skutečné N (jinak nech prázdné)
+# n = 5910
+
+
+# =========================
+# Initial opinions
+# =========================
+
+[opinions]
+# :continuous nebo :binary
+model = "continuous"
+
+# continuous distribution: "uniform" | "normal" | "polarized"
+distribution = "uniform"
+
+# rozsah pro continuous
+low = 0.0
+high = 1.0
+
+# normal params (použije se jen pokud distribution="normal")
+mu = 0.5
+sigma = 0.2
+
+# polarized params (použije se jen pokud distribution="polarized")
+# kolik jde do levého pólu; zbytek do pravého
+polarized_ratio = 0.5
+# vzdálenost pólů od okrajů + velikost šumu
+polarized_eps = 0.05
+
+
+# =========================
+# Models
+# =========================
+
+[models]
+# které modely spouštět: "deffuant", "hk", "deffuant_hrdcr"
+enabled = ["deffuant", "hk", "deffuant_hrdcr"]
+
+[models.deffuant]
+# počet interakcí (náhodných hran) na run
+iterations = 1000000
+# confidence bound; lze zadat jednu hodnotu nebo seznam, napr. [0.1, 0.2, 0.3]
+epsilon = [0.1,0.2,0.3,0.4]
+# convergence parameter (0 < mu <= 0.5); Deffuant pobezi pro kazdou kombinaci epsilon × mu
+mu = [0.1,0.2,0.3,0.4]
+# oříznutí do [0,1] po každém kroku
+clamp_low = 0.0
+clamp_high = 1.0
+
+[models.hk]
+# počet synchronních iterací
+iterations = 338
+# confidence bound; HK pobezi pro kazdou hodnotu v seznamu
+epsilon = [0.1,0.2,0.3,0.4]
+# zahrnout i vlastní názor (většinou ano)
+include_self = true
+# oříznutí do [0,1] po iteraci
+clamp_low = 0.0
+clamp_high = 1.0
+
+[models.deffuant_hrdcr]
+# počet interakcí (náhodných hran) na run
+iterations = 1000000
+# základní confidence bound; HRDCR pobezi pro kazdou kombinaci epsilon × mu
+epsilon = [0.1,0.2,0.3,0.4]
+# convergence parameter (0 < mu <= 0.5)
+mu = [0.1,0.2,0.3,0.4]
+
+# horní mez uzlové setrvačnosti (0..1); vyšší = hub se méně hýbe
+s_max = 0.1
+# nelinearita vlivu stupně na setrvačnost
+s_beta = 1.5
+
+# minimální podíl prahu (0<eps_j<=1); d_uv = d*(eps_j + (1-eps_j)*J)
+eps_j = 0.2
+# síla komunitního posílení kroku podle Jaccardu
+gamma_j = 0.1
+
+# oříznutí do [0,1] po každém kroku
+clamp_low = 0.0
+clamp_high = 1.0
+
+
+# =========================
+# Dynamic characteristics
+# =========================
+
+[dynamics]
+# cluster tolerance (mezera pro začátek nového klastru)
+cluster_delta = 0.01
+# threshold pro polarizaci (split na dvě skupiny)
+polarization_threshold = 0.5
